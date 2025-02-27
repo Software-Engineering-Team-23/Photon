@@ -17,6 +17,7 @@ class firstScreen:
 
         main_frame = tk.Frame(window, bg="gray")
         main_frame.pack(expand=True, fill=tk.BOTH, padx=200, pady=40)
+        main_frame.bind("<Button-1>", lambda event: window.focus_set())
 
         red_frame = tk.Frame(main_frame, bg="red", width=500, height=900)
         red_frame.pack(side=tk.LEFT, padx=5, pady=5, fill=tk.BOTH, expand=True)
@@ -30,27 +31,28 @@ class firstScreen:
         button_frame.pack(pady=5, padx=5)
         button_frame.pack_propagate(False)
 
-        button = tk.Button(button_frame, text="F1 Edit Game", bg="black", fg="white", width=100)
-        button.pack(padx=5, pady=5)
-        button = tk.Button(button_frame, text="F3 Start Game", bg="black", fg="white", width=100)
-        button.pack(padx=5, pady=5)
-        button = tk.Button(button_frame, text="F8 View Game", bg="black", fg="white", width=100)
-        button.pack(padx=5, pady=5)
-        button = tk.Button(button_frame, text="F11 Change Network", bg="black", fg="white", width=100, command=self.change_network)
-        button.pack(padx=5, pady=5)
-        button = tk.Button(button_frame, text="F12 Clear Game", bg="black", fg="white", width=100, command=self.clear_game)
-        button.pack(padx=5, pady=5)
+        editButton = tk.Button(button_frame, text="F1 Edit Game", bg="black", fg="white", width=100)
+        editButton.pack(padx=5, pady=5)
+        startButton = tk.Button(button_frame, text="F5 Start Game", bg="black", fg="white", width=100)
+        startButton.pack(padx=5, pady=5)
+        viewButton = tk.Button(button_frame, text="F8 View Game", bg="black", fg="white", width=100)
+        viewButton.pack(padx=5, pady=5)
+        networkButton = tk.Button(button_frame, text="F11 Change Network", bg="black", fg="white", width=100, command=self.change_network)
+        networkButton.pack(padx=5, pady=5)
+        clearButton = tk.Button(button_frame, text="F12 Clear Game", bg="black", fg="white", width=100, command=self.clear_game)
+        clearButton.pack(padx=5, pady=5)
+
+        #Hooking up f12 and f11 to push buttons
+        window.bind("<F12>", lambda event: self.clear_game())
+        window.bind("<F11>", lambda event: self.change_network())
+        
 
     def change_network(self):
         new_network = simpledialog.askstring("Input", "Enter new network")
         IP = new_network
-        print("The new network is:", IP)
+        print("The new network is: ", IP)
 
     def clear_game(self):
-        sql.delete_table("players")
-        sql.create_table()
-        print("Cleared game successfully")
-
         for entry, name_label in self.player_entries.items():
             entry.delete(0, tk.END)
             name_label.config(text="")
