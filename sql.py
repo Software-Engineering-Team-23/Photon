@@ -109,5 +109,5 @@ def delete_table(table_name):
             conn.close()
 
 if __name__ == "__main__":
-    create_table()
+    #create_table()
     fetch_players()

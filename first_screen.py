@@ -3,6 +3,7 @@ from tkinter import messagebox, simpledialog
 import sql
 from udp import udp_sender
 from udp import IP
+import action_display
 
 class firstScreen:
     def __init__(self, window):
@@ -33,7 +34,7 @@ class firstScreen:
 
         editButton = tk.Button(button_frame, text="F1 Edit Game", bg="black", fg="white", width=100)
         editButton.pack(padx=5, pady=5)
-        startButton = tk.Button(button_frame, text="F5 Start Game", bg="black", fg="white", width=100)
+        startButton = tk.Button(button_frame, text="F5 Start Game", bg="black", fg="white", width=100, command=action_display.open_window)
         startButton.pack(padx=5, pady=5)
         viewButton = tk.Button(button_frame, text="F8 View Game", bg="black", fg="white", width=100)
         viewButton.pack(padx=5, pady=5)
@@ -42,11 +43,11 @@ class firstScreen:
         clearButton = tk.Button(button_frame, text="F12 Clear Game", bg="black", fg="white", width=100, command=self.clear_game)
         clearButton.pack(padx=5, pady=5)
 
-        #Hooking up f12 and f11 to push buttons
-        window.bind("<F12>", lambda event: self.clear_game())
+        #F5 opens action display, F11 changes network, 12 clears game
+        window.bind("<F5>", lambda event: action_display.open_window())
         window.bind("<F11>", lambda event: self.change_network())
+        window.bind("<F12>", lambda event: self.clear_game())
         
-
     def change_network(self):
         new_network = simpledialog.askstring("Input", "Enter new network")
         IP = new_network
@@ -73,34 +74,32 @@ class firstScreen:
         name_header.pack(side=tk.LEFT, fill=tk.Y, expand=True, padx=5)
 
     def make_rows(self, frame, bg_color, num_rows):
-            # Create rows and headers for each team
-            self.make_headers(frame, bg_color)
+        # Create rows and headers for each team
+        self.make_headers(frame, bg_color)
 
-            for row in range(num_rows):
-                row_frame = tk.Frame(frame, bg=bg_color)
-                row_frame.pack(fill=tk.X, padx=5, pady=1)
+        for row in range(num_rows):
+            row_frame = tk.Frame(frame, bg=bg_color)
+            row_frame.pack(fill=tk.X, padx=5, pady=1)
 
-                label = tk.Label(row_frame, text=f"{row}", bg=bg_color, font=("Helvetica", 20))
-                label.pack(side=tk.LEFT, padx=5)
+            label = tk.Label(row_frame, text=f"{row}", bg=bg_color, font=("Helvetica", 20))
+            label.pack(side=tk.LEFT, padx=5)
 
-                # Entry fields for player ID
-                player_id_entry = tk.Entry(row_frame, bg="white", fg="black", width=5)
-                player_id_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+            # Entry fields for player ID
+            player_id_entry = tk.Entry(row_frame, bg="white", fg="black", width=5)
+            player_id_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
 
-                # Entry fields for equipment ID
-                equipment_id_entry = tk.Entry(row_frame, bg="white", fg="black", width=5)
-                equipment_id_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
-                self.equipment_entries.append(equipment_id_entry)
+            # Entry fields for equipment ID
+            equipment_id_entry = tk.Entry(row_frame, bg="white", fg="black", width=5)
+            equipment_id_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+            self.equipment_entries.append(equipment_id_entry)
 
-                # Display codename to the right of player ID
-                name_label = tk.Label(row_frame, bg="white", fg="black")
-                name_label.pack(side=tk.LEFT, fill=tk.X, expand=False, padx=5)
-                self.player_entries[player_id_entry] = name_label
+            # Display codename to the right of player ID
+            name_label = tk.Label(row_frame, bg="white", fg="black")
+            name_label.pack(side=tk.LEFT, fill=tk.X, expand=False, padx=5)
+            self.player_entries[player_id_entry] = name_label
 
-                player_id_entry.bind("<Return>", lambda event, e=player_id_entry, r=row: self.submit_player_id(e))
-                equipment_id_entry.bind("<Return>", lambda event, e=equipment_id_entry, r=row: self.submit_equipment_id(e))
-
-
+            player_id_entry.bind("<Return>", lambda event, e=player_id_entry, r=row: self.submit_player_id(e))
+            equipment_id_entry.bind("<Return>", lambda event, e=equipment_id_entry, r=row: self.submit_equipment_id(e))
 
     def submit_equipment_id(self, entry):
         # Get entry value. If in use, exit the function.
@@ -165,6 +164,7 @@ class firstScreen:
                 print("Error creating new player entry: ", e)
         sql.fetch_players()
 
-window = tk.Tk()
-gui = firstScreen(window)
-window.mainloop()
+def open_window():
+    window = tk.Tk()
+    gui = firstScreen(window)
+    window.mainloop()
