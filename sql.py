@@ -9,11 +9,7 @@ from psycopg2 import sql
 def connect_db():
     try:
         conn = psycopg2.connect(
-            dbname="photon",
-            #user="student",
-            #password="student",
-            #host="localhost",
-            #port="5432"
+            dbname="photon"
         )
         return conn
     except Exception as e:
@@ -114,11 +110,4 @@ def delete_table(table_name):
 
 if __name__ == "__main__":
     create_table()
-    #insert_player("John Doe", 10)
-    #update_player(1, "John Smith", 5)
     fetch_players()
-    #delete_table("players")
-    #delete_player(4)
-    #fetch_players()
-    #delete_player(2)
-    #fetch_players()
