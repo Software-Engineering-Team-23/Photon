@@ -3,7 +3,7 @@ import time
 import tkinter as tk
 from PIL import Image, ImageTk
 import action_display
-
+import udp
 
 # Folder containing the images
 IMAGE_FOLDER = "countdown_images"
@@ -119,6 +119,7 @@ class CountdownApp:
             
             self.root.after(1000, self.countdown, count - 1)
         else:
+            udp.udp_sender(202)
             # Added to open action display after the countdown
             self.root.destroy()
             action_display.open_window(self.players)
