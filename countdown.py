@@ -2,6 +2,7 @@ import os
 import time
 import tkinter as tk
 from PIL import Image, ImageTk
+import action_display
 
 
 # Folder containing the images
@@ -17,8 +18,9 @@ STATE2_IMAGE = os.path.join(IMAGE_FOLDER, "state2.png")
 NUMBER_IMAGES = {str(i): os.path.join(IMAGE_FOLDER, f"{i}.tif") for i in range(31)}
 
 class CountdownApp:
-    def __init__(self, root):
+    def __init__(self, root, players=None):
         self.root = root
+        self.players = players
         self.root.title("Photon Match Countdown")
         self.root.attributes("-fullscreen", True)  # Enable fullscreen mode
         
@@ -117,9 +119,12 @@ class CountdownApp:
             
             self.root.after(1000, self.countdown, count - 1)
         else:
-            self.root.quit()
+            # Added to open action display after the countdown
+            self.root.destroy()
+            action_display.open_window(self.players)
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = CountdownApp(root)
+
+def open_window(players):
+    root = tk.Toplevel()
+    CountdownApp(root, players)
     root.mainloop()
