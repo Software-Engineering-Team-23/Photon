@@ -1,45 +1,55 @@
-#### First install Tkinter, psycopg2, and PIL
+# Photon
 
-#### If you don't have pip, please install it with "sudo apt install python3-pip"
+This is the repository for Team 23's implementation of Photon for CSCE 35103.
 
-#### PIL package is required
+## Setup
 
-Type in Command Prompt:
+First install Tkinter, psycopg2, and PIL using the command line.
 
-pip install Pillow
+If you don't have pip on Debian, please install it with "sudo apt install python3-pip"
 
-Alternatively on Debian:
+#### PIL (Pillow) package
 
+Debian:  
 sudo apt install python3-pil python3-pil.imagetk
 
-#### Tkinter required
+Alternatively:  
+pip install Pillow
 
-Debian:
+#### Tkinter package
+
+Debian:  
 sudo apt-get install python3-tk
 
-MacOS:
+MacOS:  
 brew install python-tk
 
-#### psycopg2 required
+#### psycopg2 package
 
-Debian:
+Debian:  
 sudo apt install python3-psycopg2
 
-MacOS:
-brew install postgresql
+MacOS:  
+brew install postgresql  
 pip install psycopg2
 
-#### After installed, type "python3 udp.py" in one terminal.
-#### Then in a different terminal, type "python3 main.py"
-#### Once at the player entry screen, enter the player ID in the left field.
-#### Then, in the right field, enter the equipment ID, which will transmit to UDP.
-#### The database will be updated accordingly.
+## Instructions
+
+After installing all requirements, type "python3 udp.py" in one terminal.
+Then in a different terminal, type "python3 main.py".
+Once at the player entry screen, enter the player ID in the left field.
+Then, in the right field, enter the equipment ID, which will transmit to UDP.
+The database will be updated accordingly.
+Once the players are entered, you can press the F5 button to start the game.
+The countdown timer will begin, after which the play action screen appears.
+
+## Team
 
 
-GitHub	          |  Name            | Part of project
-:----------------:|:----------------:|:------------:
-alexRAI10	        |  Alain Delgado   | splash_screen
-dylan-schlageter  | Dylan Schlageter | first_screen/udp
-nnwp-ross	        |  Jordan Calhoun  | sql/database
-m-lm	            |  Micah McCollum  | splash-first screen transition, rework entry flow
+GitHub	          |  Name            |
+:----------------:|:----------------:|
+alexRAI10	        |  Alain Delgado   |
+dylan-schlageter  | Dylan Schlageter |
+nnwp-ross	        |  Jordan Calhoun  |
+m-lm	            |  Micah McCollum  |
 RAndreChavez	    |  Remer Chavez    |

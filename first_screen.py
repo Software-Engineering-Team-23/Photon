@@ -1,8 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox, simpledialog
 import sql
-from udp import udp_sender
-from udp import IP
+import udp
 import countdown
 
 class firstScreen:
@@ -51,8 +50,8 @@ class firstScreen:
 
     def change_network(self):
         new_network = simpledialog.askstring("Input", "Enter new network")
-        IP = new_network
-        print("The new network is: ", IP)
+        udp.IP = new_network
+        print("The new network is:", udp.IP)
 
     def clear_game(self):
         for entry, (name_label, team) in self.player_entries.items():
@@ -116,7 +115,7 @@ class firstScreen:
             messagebox.showerror("Error", "Invalid submission. Enter an integer ID")
             entry.delete(0, tk.END)
             return
-        udp_sender(value)
+        udp.udp_sender(value)
         messagebox.showinfo("Info", f"Equipment ID {value} transmitted")
 
     def submit_player_id(self, entry, team):
@@ -124,6 +123,11 @@ class firstScreen:
         value = entry.get().strip()
         try:
             if value == "":
+                self.player_entries[entry][0].config(text="")
+                return
+            elif value in map(lambda e: e.get().strip() if e != entry else "", self.player_entries.keys()): # Checks if value is in entered IDs
+                messagebox.showerror("Error", "Invalid submission. Player ID currently in use")
+                entry.delete(0, tk.END)
                 return
             value = int(value)
         except ValueError:
@@ -151,7 +155,7 @@ class firstScreen:
 
                 # Assign to the new team
                 self.assigned_players[value] = team  # Update stored team
-                self.player_entries[entry][0].config(text=f"{codename}")  # Update UI
+                self.player_entries[entry][0].config(text=codename)  # Update UI
                 # messagebox.showinfo("Info", f"Player {value} assigned to {team}")
             
             except Exception as e:
@@ -174,8 +178,8 @@ class firstScreen:
                 # Store new player in database
                 sql.create_player(player_id=value, codename=new_codename)
                 self.assigned_players[value] = team  # Store assigned team
-                self.player_entries[entry][0].config(text=f"{new_codename}")
-                # messagebox.showinfo("Info", f"New Player {value} assigned to {team}")
+                messagebox.showinfo("Info", f"Player ID {value} assigned to '{new_codename}'")
+                self.player_entries[entry][0].config(text=new_codename)
 
             except Exception as e:
                 print("Error creating new player entry: ", e)
