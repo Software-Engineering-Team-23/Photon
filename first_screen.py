@@ -3,6 +3,7 @@ from tkinter import messagebox, simpledialog
 import sql
 import udp
 import countdown
+import threading
 
 class firstScreen:
     def __init__(self, window):
@@ -12,6 +13,9 @@ class firstScreen:
         self.player_entries = {}  #  Key-value dictionary with key=PlayerID_entry and value=name_label
         self.equipment_entries = []  # List holding EquipmentID Tkinter entries
         self.assigned_players = {} # Dictionary to track assigned players
+        self.last_tagger = None
+        self.last_tagged = None
+        self.equipment_to_codename = {} #dictionary for equipment-code: codename
 
         title = tk.Label(window, text="Edit Game", bg="blue", fg="white", font=("Arial", 27, "bold"))
         title.pack()
@@ -48,6 +52,26 @@ class firstScreen:
         window.bind("<F11>", lambda event: self.change_network())
         window.bind("<F12>", lambda event: self.clear_game())
 
+        #Start listening for tagged events
+        udp.set_tagged_callback(self.handle_tagged)
+
+        #Start the UDP receiver thread
+        threading.Thread(target=udp.udp_receiver, daemon=True).start()
+
+
+    def handle_tagged(self, tagger, tagged):
+        self.last_tagger = tagger
+        self.last_tagged = tagged
+
+        try:
+            codename_tagger = self.equipment_to_codename.get(int(tagger), "Unknown") #getting tagger codename from dictionary
+            codename_tagged = self.equipment_to_codename.get(int(tagged), "Unknown") #getting tagged codename from dictionary
+            print(f"Handled tag: {codename_tagger} tagged {codename_tagged}")
+        except Exception as e:
+            print(f"Error in handle_tagged: {e}")
+        
+
+
     def change_network(self):
         new_network = simpledialog.askstring("Input", "Enter new network")
         udp.IP = new_network
@@ -60,6 +84,7 @@ class firstScreen:
 
         for entry in self.equipment_entries:
             entry.delete(0, tk.END)
+
 
     def make_headers(self, frame, bg_color):
         row_frame = tk.Frame(frame, bg=bg_color)
@@ -101,12 +126,11 @@ class firstScreen:
             equipment_id_entry.bind("<Return>", lambda event, e=equipment_id_entry, r=row: self.submit_equipment_id(e))
 
     def submit_equipment_id(self, entry):
-        # Get entry value. If in use, exit the function.
         value = entry.get().strip()
         try:
             if value == "":
                 return
-            elif value in map(lambda e: e.get().strip() if e != entry else "", self.equipment_entries): # Checks if value is in entered IDs
+            elif value in map(lambda e: e.get().strip() if e != entry else "", self.equipment_entries):
                 messagebox.showerror("Error", "Invalid submission. Equipment ID currently in use")
                 entry.delete(0, tk.END)
                 return
@@ -115,8 +139,24 @@ class firstScreen:
             messagebox.showerror("Error", "Invalid submission. Enter an integer ID")
             entry.delete(0, tk.END)
             return
-        udp.udp_sender(value)
-        messagebox.showinfo("Info", f"Equipment ID {value} transmitted")
+
+        # Find corresponding player ID in the same row
+        row_index = self.equipment_entries.index(entry)
+        player_entry = list(self.player_entries.keys())[row_index]
+        player_id = player_entry.get().strip()
+
+        if not player_id.isdigit():
+            messagebox.showerror("Error", "Enter valid Player ID first")
+            return
+
+        player_id = int(player_id)
+
+        
+        codename = self.player_entries[player_entry][0].cget("text") #get codename from appropriate row
+        self.equipment_to_codename[value] = codename #add equipment-id: codename in dictionary
+
+        udp.udp_sender(value) #transmit the equipment id to udp
+        
 
     def submit_player_id(self, entry, team):
         # Get entry value. If empty, clear name label and exit function. If in use, also exit.
