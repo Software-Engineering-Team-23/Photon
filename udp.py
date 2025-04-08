@@ -7,6 +7,13 @@ IP = "127.0.0.1"  #Localhost broadcast
 BROADCAST_PORT = 7500  #Port for broadcasting
 RECEIVE_PORT = 7501  #Port where receiver listens
 
+tagged_callback = None
+
+def set_tagged_callback(callback):
+    global tagged_callback
+    tagged_callback = callback
+
+
 def udp_receiver():
     """Here to receive UDP messages on port 7501."""
     recv_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -16,16 +23,30 @@ def udp_receiver():
     print(f"Receiver listening on {IP}:{RECEIVE_PORT}...")
 
     while True:
-        data, addr = recv_socket.recvfrom(1024)  #Buffer size= 1024 bytes
+        data, addr = recv_socket.recvfrom(1024)
         message = data.decode()
         print(f"Received message: {message} from {addr}")
 
+        if ':' in message:
+            try:
+                tagger, tagged = message.split(':')
+                print(tagger + " tagged " + tagged)
+                
+                #Send tagged to keep traffic going
+                udp_sender(tagged)
+
+                #send to first_screen
+                if tagged_callback:
+                    tagged_callback(tagger, tagged)
+            except ValueError:
+                print("Invalid message format. Expected tagger:tagged.")
+
 def udp_sender(equipment_id):
-    """Send UDP message directly to 7501"""
+    """Send UDP message to 7500"""
     send_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     message = str(equipment_id)
-    send_socket.sendto(message.encode(), (IP, RECEIVE_PORT))  #sending to receiver
-    print(f"Sent equipment ID: {message} to {IP}:{RECEIVE_PORT}")
+    send_socket.sendto(message.encode(), (IP, BROADCAST_PORT))  #sending to 7500
+    print(f"Sent equipment ID: {message} to {IP}:{BROADCAST_PORT}")
 
 def start_services():
     """Start receiver thread"""
@@ -35,5 +56,5 @@ def start_services():
 if __name__ == "__main__":
     start_services()
     
-    # Wait for messages to be processed before script exits
-    time.sleep(200)
+    #Wait for messages to be processed before script exits
+    time.sleep(2000)
