@@ -227,16 +227,22 @@ class firstScreen:
         sql.fetch_players()
 
     def start_game(self):
-        players = {}  # Store {PlayerID: {codename, team}}
+        players = {}  # Store {equipment_id: {codename, team}}
 
         for entry, (name_label, team) in self.player_entries.items():
             player_id = entry.get().strip()
             if player_id:
                 try:
                     player_id = int(player_id)
-                    name_text = name_label.cget("text")  # Get label text
-                    if name_text:
-                        players[player_id] = {"codename": name_text, "team": team}
+                    codename = name_label.cget("text")
+                    if codename:
+                        # Find the equipment ID associated with this row
+                        row_index = list(self.player_entries.keys()).index(entry)
+                        equipment_entry = self.equipment_entries[row_index]
+                        equipment_id = equipment_entry.get().strip()
+                        if equipment_id:
+                            equipment_id = int(equipment_id)
+                            players[equipment_id] = {"codename": codename, "team": team}
                 except ValueError:
                     continue  # Ignore invalid entries
 
