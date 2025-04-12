@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import Frame, Label, Text
+import udp
+
 
 class actionDisplay:
     def __init__(self, window, players=None):
@@ -22,6 +24,7 @@ class actionDisplay:
 
         # Iterating over the dictionary to add players
         if players:
+            self.players = players
             for player_id, data in players.items():
                 self.add_player(data["team"], data["codename"], 0)
 
@@ -86,6 +89,11 @@ class actionDisplay:
         self.log_text = Text(self.log_frame_property, height=8, width=50, bg="black", fg="white",
                              font=("Arial", 12, "italic"), bd=3, relief="solid")
         self.log_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        #Adding colors each team memeber in event log
+        self.log_text.tag_config("RedPlayer", foreground="red")
+        self.log_text.tag_config("GreenPlayer", foreground="green")
+        self.log_text.tag_config("Normal", foreground="white")
             
     def add_player(self, team, name, score=0):
         frame = self.red_frame if team.lower() == "red" else self.green_frame
@@ -100,12 +108,125 @@ class actionDisplay:
         score_label.pack(side=tk.RIGHT, padx=10)
 
         if team.lower() == "red":
-            self.red_players[name] = score_label
+            self.red_players[name] = {"name": name_label, "score": score_label}
         else:
-            self.green_players[name] = score_label
+            self.green_players[name] = {"name": name_label, "score": score_label}
 
+    def log_event(self, message, tagger_name=None, tagger_team=None, tagged_name=None, tagged_team=None):
+        def safe_insert():
+            self.log_text.insert(tk.END, "\n")
 
+            if all([tagger_name, tagger_team, tagged_name, tagged_team]):
+                self.log_text.insert(tk.END, f"{tagger_name}", "RedPlayer" if tagger_team.lower() == "red" else "GreenPlayer")
+                self.log_text.insert(tk.END, " tag ", "Normal")
+                self.log_text.insert(tk.END, f"{tagged_name}", "RedPlayer" if tagged_team.lower() == "red" else "GreenPlayer")
+            else:
+                self.log_text.insert(tk.END, message, "Normal")
+
+            self.log_text.see(tk.END)
+
+        self.log_text.after(0, safe_insert)
+
+    def handle_tagged(self, tagger_id, tagged_id):
+        try:
+            tagger_id = int(tagger_id)
+            tagged_id = int(tagged_id)
+
+            tagger_info = self.players.get(tagger_id)
+            tagged_info = self.players.get(tagged_id)
+
+            if tagger_info and tagged_info:
+                print(f"Handled tag: {tagger_info['codename']} tagged {tagged_info['codename']}") #Print the tag info into the console
+
+            if tagged_id == 53:
+                if tagger_info["team"].lower() == "green":
+                    tagger_name = tagger_info["codename"]
+                    self.log_event(
+                        message=None,
+                        tagger_name=tagger_name,
+                        tagger_team="green",
+                        tagged_name="Red Base",
+                        tagged_team="red"
+                    )
+                    self.blink_player_label(tagger_name, "green")
+                    return
+                
+            if tagged_id == 43:
+                if tagger_info["team"].lower() == "red":
+                    tagger_name = tagger_info["codename"]
+                    self.log_event(
+                        message=None,
+                        tagger_name=tagger_name,
+                        tagger_team="red",
+                        tagged_name="Green Base",
+                        tagged_team="green"
+                    )
+                    self.blink_player_label(tagger_name, "red")
+                    return
+
+            tagged_info = self.players.get(tagged_id)
+
+            if not tagger_info or not tagged_info:
+                self.log_event(f"Unknown tag event: {tagger_id} → {tagged_id}")
+                return
+
+            tagger_name = tagger_info["codename"]
+            tagged_name = tagged_info["codename"]
+
+            tagger_team = tagger_info["team"].capitalize()
+            tagged_team = tagged_info["team"].capitalize()
+
+            #Log with colored player names
+            self.log_event(
+                message="", 
+                tagger_name=tagger_name,
+                tagger_team=tagger_team,
+                tagged_name=tagged_name,
+                tagged_team=tagged_team
+            )
+
+        except Exception as e:
+            self.log_event(f"Error processing hit: {e}")
+
+    #Element to score base (B)
+    def blink_player_label(self, player_name, team_color, duration=5000, interval=500):
+        team_dict = self.green_players if team_color.lower() == "green" else self.red_players
+        label_entry = team_dict.get(player_name)
+        if not label_entry:
+            return
+
+        name_label = label_entry["name"]
+        original_text = name_label.cget("text")
+        player_row = name_label.master
+
+        #Remove the original name label
+        name_label.pack_forget()
+
+        #Frame aspects for B
+        blink_frame = Frame(player_row, bg="black")
+        blink_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+        b_label = Label(blink_frame, text="B", fg="#cc33ff", font=("Courier New", 15, "bold"), bg="black")
+        name_label_new = Label(blink_frame, text=original_text, fg="white", font=("Arial", 15), bg="black")
+
+        b_label.pack(side=tk.LEFT, padx=(0, 5))
+        name_label_new.pack(side=tk.LEFT)
+
+        def toggle_color(count):
+            if count <= 0:
+                blink_frame.destroy()
+                name_label.pack(side=tk.LEFT, fill=tk.X, expand=True)
+                return
+            current = b_label.cget("fg")
+            b_label.config(fg="#cc33ff" if current == "cyan" else "cyan")
+            self.window.after(interval, toggle_color, count - 1)
+
+        blink_count = duration // interval
+        toggle_color(blink_count)  
+            
 def open_window(players=None):
     window = tk.Tk()
     display = actionDisplay(window, players)
+    #Set the UDP callback to the action display's method
+    udp.set_tagged_callback(display.handle_tagged)    
     window.mainloop()
