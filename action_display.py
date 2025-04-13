@@ -118,7 +118,7 @@ class actionDisplay:
 
             if all([tagger_name, tagger_team, tagged_name, tagged_team]):
                 self.log_text.insert(tk.END, f"{tagger_name}", "RedPlayer" if tagger_team.lower() == "red" else "GreenPlayer")
-                self.log_text.insert(tk.END, " tag ", "Normal")
+                self.log_text.insert(tk.END, " tagged ", "Normal")
                 self.log_text.insert(tk.END, f"{tagged_name}", "RedPlayer" if tagged_team.lower() == "red" else "GreenPlayer")
             else:
                 self.log_text.insert(tk.END, message, "Normal")
@@ -189,7 +189,7 @@ class actionDisplay:
             self.log_event(f"Error processing hit: {e}")
 
     #Element to score base (B)
-    def blink_player_label(self, player_name, team_color, duration=5000, interval=500):
+    def blink_player_label(self, player_name, team_color, duration=360000, interval=500):
         team_dict = self.green_players if team_color.lower() == "green" else self.red_players
         label_entry = team_dict.get(player_name)
         if not label_entry:

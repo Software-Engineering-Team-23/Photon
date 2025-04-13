@@ -139,6 +139,7 @@ class firstScreen:
             messagebox.showerror("Error", "Invalid submission. Enter an integer ID")
             entry.delete(0, tk.END)
             return
+        
 
         # Find corresponding player ID in the same row
         row_index = self.equipment_entries.index(entry)
@@ -154,7 +155,8 @@ class firstScreen:
         
         codename = self.player_entries[player_entry][0].cget("text") #get codename from appropriate row
         self.equipment_to_codename[value] = codename #add equipment-id: codename in dictionary
-
+        
+        messagebox.showinfo("Info", f"Equipment ID {value} transmitted")
         udp.udp_sender(value) #transmit the equipment id to udp
         
 
