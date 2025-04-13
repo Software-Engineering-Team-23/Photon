@@ -15,8 +15,7 @@ class actionDisplay:
         # Player storage
         self.red_players = {}
         self.green_players = {}
-        self.red_score = 0
-        self.green_score = 0
+        self.team_scores = {"red": 0, "green": 0}
 
         Label(self.window, text="Current Scores", fg="cyan", bg="black", font=("Arial", 16, "bold")).pack(side=tk.TOP, pady=(10, 2), anchor="n")
 
@@ -26,7 +25,7 @@ class actionDisplay:
         if players:
             self.players = players
             for player_id, data in players.items():
-                self.add_player(data["team"], data["codename"], 0)
+                self.add_player(data["team"], data["codename"], data["score"])
 
     def setup_ui(self):
         # Team Scores Elements
@@ -127,6 +126,16 @@ class actionDisplay:
 
         self.log_text.after(0, safe_insert)
 
+    def update_scoreboard(self, tagger_team, tagger_name, tagger_id):
+        # Updates scoreboard display for player
+        score = self.players.get(tagger_id)["score"]
+        if tagger_team.lower() == "red":
+            self.red_players[tagger_name]["score"].config(text=score)
+            self.red_total_score.config(text=self.team_scores["red"])
+        else:
+            self.green_players[tagger_name]["score"].config(text=score)
+            self.green_total_score.config(text=self.team_scores["green"])
+
     def handle_tagged(self, tagger_id, tagged_id):
         try:
             tagger_id = int(tagger_id)
@@ -141,6 +150,9 @@ class actionDisplay:
             if tagged_id == 53:
                 if tagger_info["team"].lower() == "green":
                     tagger_name = tagger_info["codename"]
+                    self.players.get(tagger_id)["score"] += 100
+                    self.team_scores["green"] += 100
+                    self.update_scoreboard("green", tagger_name, tagger_id)
                     self.log_event(
                         message=None,
                         tagger_name=tagger_name,
@@ -154,6 +166,9 @@ class actionDisplay:
             if tagged_id == 43:
                 if tagger_info["team"].lower() == "red":
                     tagger_name = tagger_info["codename"]
+                    self.players.get(tagger_id)["score"] += 100
+                    self.team_scores["red"] += 100
+                    self.update_scoreboard("red", tagger_name, tagger_id)
                     self.log_event(
                         message=None,
                         tagger_name=tagger_name,
@@ -164,8 +179,6 @@ class actionDisplay:
                     self.blink_player_label(tagger_name, "red")
                     return
 
-            tagged_info = self.players.get(tagged_id)
-
             if not tagger_info or not tagged_info:
                 self.log_event(f"Unknown tag event: {tagger_id} → {tagged_id}")
                 return
@@ -175,6 +188,17 @@ class actionDisplay:
 
             tagger_team = tagger_info["team"].capitalize()
             tagged_team = tagged_info["team"].capitalize()
+
+            if tagger_team != tagged_team:
+                # Add points for hitting enemy
+                self.players.get(tagger_id)["score"] += 10
+                self.team_scores[tagger_team.lower()] += 10
+            else:
+                # Deduct points for friendly-fire
+                self.players.get(tagger_id)["score"] -= 10
+                self.team_scores[tagger_team.lower()] -= 10
+
+            self.update_scoreboard(tagger_team, tagger_name, tagger_id)    
 
             #Log with colored player names
             self.log_event(

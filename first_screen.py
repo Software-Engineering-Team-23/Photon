@@ -229,7 +229,7 @@ class firstScreen:
         sql.fetch_players()
 
     def start_game(self):
-        players = {}  # Store {equipment_id: {codename, team}}
+        players = {}  # Store {equipment_id: {codename, team, score}}
 
         for entry, (name_label, team) in self.player_entries.items():
             player_id = entry.get().strip()
@@ -244,7 +244,7 @@ class firstScreen:
                         equipment_id = equipment_entry.get().strip()
                         if equipment_id:
                             equipment_id = int(equipment_id)
-                            players[equipment_id] = {"codename": codename, "team": team}
+                            players[equipment_id] = {"codename": codename, "team": team, "score": 0}
                 except ValueError:
                     continue  # Ignore invalid entries
 
