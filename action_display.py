@@ -3,7 +3,7 @@ from tkinter import Frame, Label, Text
 import udp
 
 
-class actionDisplay:
+class actionDisplay():
     def __init__(self, window, players=None):
         self.window = window
         self.window.geometry((f"{window.winfo_screenwidth()}x{window.winfo_screenheight()}+0+0"))
@@ -26,6 +26,9 @@ class actionDisplay:
             self.players = players
             for player_id, data in players.items():
                 self.add_player(data["team"], data["codename"], data["score"])
+
+        # Back button to return to player entry screen appears, after game ends
+        window.after(360000, self.display_back_button)
 
     def setup_ui(self):
         # Team Scores Elements
@@ -89,10 +92,16 @@ class actionDisplay:
                              font=("Arial", 12, "italic"), bd=3, relief="solid")
         self.log_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        #Adding colors each team memeber in event log
+        #Adding colors each team member in event log
         self.log_text.tag_config("RedPlayer", foreground="red")
         self.log_text.tag_config("GreenPlayer", foreground="green")
         self.log_text.tag_config("Normal", foreground="white")
+
+    def display_back_button(self):
+        def go_back():
+            self.window.destroy()
+        top_left = tk.Button(self.window, text="BACK", fg="cyan", bg="black", command=go_back)
+        top_left.place(x=0, y=0, anchor="nw")
             
     def add_player(self, team, name, score=0):
         frame = self.red_frame if team.lower() == "red" else self.green_frame
