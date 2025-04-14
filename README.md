@@ -33,15 +33,23 @@ MacOS:
 brew install postgresql  
 pip install psycopg2
 
+#### pygame package
+
+Debian: 
+sudo apt-get install python3-pygame
+
+Pip: 
+pip install pygame
+
 ## Instructions
 
-After installing all requirements, type "python3 udp.py" in one terminal.
-Then in a different terminal, type "python3 main.py".
+After installing all requirements, type "python3 main.py".
 Once at the player entry screen, enter the player ID in the left field.
 Then, in the right field, enter the equipment ID, which will transmit to UDP.
-The database will be updated accordingly.
+The database will update accordingly.
 Once the players are entered, you can press the F5 button to start the game.
-The countdown timer will begin, after which the play action screen appears.
+The countdown timer will begin, after which the play action screen appears. 
+After the game ends, a back button will appear in the top-left corner to return to the entry screen. 
 
 ## Team
 
