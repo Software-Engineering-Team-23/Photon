@@ -4,6 +4,7 @@ import sql
 import udp
 import countdown
 import threading
+import playsound
 
 class firstScreen:
     def __init__(self, window):
@@ -252,5 +253,6 @@ class firstScreen:
 
 def open_window():
     window = tk.Tk()
+    playsound.random_music()
     firstScreen(window)
     window.mainloop()
