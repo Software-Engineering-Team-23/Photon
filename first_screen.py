@@ -4,7 +4,6 @@ import sql
 import udp
 import countdown
 import threading
-import playsound
 
 class firstScreen:
     def __init__(self, window, preload_players=None):
