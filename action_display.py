@@ -31,9 +31,6 @@ class actionDisplay:
             for player_id, data in players.items():
                 self.add_player(data["team"], data["codename"], data["score"])
 
-        # Back button to return to player entry screen appears, after game ends
-        window.after(360000, self.display_back_button)
-
     def setup_ui(self):
         # Team Scores Elements
         self.team_frame = Frame(self.window, bg="black")
@@ -101,30 +98,34 @@ class actionDisplay:
         self.log_text.tag_config("GreenPlayer", foreground="green")
         self.log_text.tag_config("Normal", foreground="white")
         
-     def setup_timer(self):
-         self.remaining_seconds = 360  # 6 minutes
+    def setup_timer(self):
+        self.remaining_seconds = 360  # 6 minutes
  
-         self.timer_label = Label(self.window, text="", fg="white", bg="black", font=("Arial", 18, "bold"))
-         self.timer_label.pack(side=tk.TOP, pady=5)
-         self.update_timer()
+        self.timer_label = Label(self.window, text="", fg="white", bg="black", font=("Arial", 18, "bold"))
+        self.timer_label.pack(side=tk.TOP, pady=5)
+        self.update_timer()
  
-     def update_timer(self):
-         if self.remaining_seconds >= 0:
-             mins = self.remaining_seconds // 60
-             secs = self.remaining_seconds % 60
-             self.timer_label.config(text=f"Game Time Remaining: {mins:02}:{secs:02}")
-             self.remaining_seconds -= 1
-             self.window.after(1000, self.update_timer)
-         else:
-             self.end_game()
+    def update_timer(self):
+        if self.remaining_seconds >= 0:
+            mins = self.remaining_seconds // 60
+            secs = self.remaining_seconds % 60
+            self.timer_label.config(text=f"Game Time Remaining: {mins:02}:{secs:02}")
+            self.remaining_seconds -= 1
+            self.window.after(1000, self.update_timer)
+        else:
+            self.end_game()
  
-     def end_game(self):
-         def ignore_tags(*args, **kwargs):
-             pass
-         udp.set_tagged_callback(ignore_tags)
+    def end_game(self):
+        def ignore_tags(*args, **kwargs):
+            pass
+        udp.set_tagged_callback(ignore_tags)
  
-         game_over_label = Label(self.window, text="GAME OVER", fg="red", bg="black", font=("Arial", 48, "bold"))
-         game_over_label.place(relx=0.5, rely=0.5, anchor="center")
+        game_over_label = Label(self.window, text="GAME OVER", fg="red", bg="black", font=("Arial", 48, "bold"))
+        game_over_label.place(relx=0.5, rely=0.5, anchor="center")
+        self.display_back_button()
+        for i in range(3):
+            # Send code 221 three times to signal game end
+            udp.udp_sender(221)
     
     def display_back_button(self):
         def go_back():
@@ -276,7 +277,8 @@ class actionDisplay:
             self.log_event(f"Error processing hit: {e}")
 
     #Element to score base (B)
-    def blink_player_label(self, player_name, team_color, duration=360000, interval=500):
+    def blink_player_label(self, player_name, team_color, interval=500):
+        duration = self.remaining_seconds * 1000
         team_dict = self.green_players if team_color.lower() == "green" else self.red_players
         label_entry = team_dict.get(player_name)
         if not label_entry:
