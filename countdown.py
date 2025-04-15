@@ -125,7 +125,9 @@ class CountdownApp:
             action_display.open_window(self.players)
 
 
-def open_window(players):
-    root = tk.Toplevel()
+def open_window(players, master=None):
+    if master is not None:
+        master.destroy() 
+    root = tk.Tk()
     CountdownApp(root, players)
     root.mainloop()
