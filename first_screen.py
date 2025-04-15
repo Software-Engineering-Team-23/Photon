@@ -7,16 +7,18 @@ import threading
 import playsound
 
 class firstScreen:
-    def __init__(self, window):
+    def __init__(self, window, preload_players=None):
         window.title("Entry Terminal")
-        window.geometry("800x700")
+        window.geometry((f"{window.winfo_screenwidth()}x{window.winfo_screenheight()}+0+0")) # Added to fill screen
         window.configure(bg="black")
+        self.root = window
         self.player_entries = {}  #  Key-value dictionary with key=PlayerID_entry and value=name_label
         self.equipment_entries = []  # List holding EquipmentID Tkinter entries
         self.assigned_players = {} # Dictionary to track assigned players
         self.last_tagger = None
         self.last_tagged = None
         self.equipment_to_codename = {} #dictionary for equipment-code: codename
+        self.preload_players = preload_players or {} # Dictionary to preload players
 
         title = tk.Label(window, text="Edit Game", bg="blue", fg="white", font=("Arial", 27, "bold"))
         title.pack()
@@ -58,7 +60,26 @@ class firstScreen:
 
         #Start the UDP receiver thread
         threading.Thread(target=udp.udp_receiver, daemon=True).start()
+        
+        # Extract and populating entries for further use
+        for equipment_id, player_data in self.preload_players.items():
+            codename = player_data["codename"]
+            team = player_data["team"]
+            player_id = player_data["player_id"]
 
+            for player_entry, (name_label, assigned_team) in self.player_entries.items():
+                if assigned_team == team and not player_entry.get():
+                    # Find the equipment entry by row index
+                    row_index = list(self.player_entries.keys()).index(player_entry)
+                    equipment_entry = self.equipment_entries[row_index]
+
+                    if not equipment_entry.get():
+                        player_entry.insert(0, str(player_id))
+                        equipment_entry.insert(0, str(equipment_id))
+                        name_label.config(text=codename)
+                        self.assigned_players[player_id] = team
+                        self.equipment_to_codename[equipment_id] = codename
+                        break
 
     def handle_tagged(self, tagger, tagged):
         self.last_tagger = tagger
@@ -254,10 +275,10 @@ class firstScreen:
                 except ValueError:
                     continue  # Ignore invalid entries
 
-        countdown.open_window(players)
+        countdown.open_window(players, master=self.root)
 
-def open_window():
+def open_window(preload_players=None):
     window = tk.Tk()
     playsound.random_music()
-    firstScreen(window)
+    firstScreen(window, preload_players=preload_players)
     window.mainloop()
