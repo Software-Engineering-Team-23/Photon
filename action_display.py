@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import Frame, Label, Text
 import udp
-
+import playsound
 
 class actionDisplay:
     def __init__(self, window, players=None):
@@ -355,6 +355,7 @@ class actionDisplay:
 def open_window(players=None):
     window = tk.Tk()
     display = actionDisplay(window, players)
+    playsound.random_music()
     #Set the UDP callback to the action display's method
     udp.set_tagged_callback(display.handle_tagged)    
     window.mainloop()
