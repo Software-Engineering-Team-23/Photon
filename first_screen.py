@@ -279,6 +279,5 @@ class firstScreen:
 
 def open_window(preload_players=None):
     window = tk.Tk()
-    playsound.random_music()
     firstScreen(window, preload_players=preload_players)
     window.mainloop()
