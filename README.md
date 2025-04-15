@@ -4,7 +4,7 @@ This is the repository for Team 23's implementation of Photon for CSCE 35103.
 
 ## Setup
 
-First install Tkinter, psycopg2, and PIL using the command line.
+First install Tkinter, psycopg2, pygame, and PIL using the command line.
 
 If you don't have pip on Debian, please install it with "sudo apt install python3-pip"
 
