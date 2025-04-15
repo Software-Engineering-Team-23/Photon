@@ -22,6 +22,9 @@ class actionDisplay:
 
         self.setup_ui()
 
+        # Start 6-minute gameplay timer
+        self.setup_timer()
+
         # Iterating over the dictionary to add players
         if players:
             self.players = players
@@ -97,7 +100,32 @@ class actionDisplay:
         self.log_text.tag_config("RedPlayer", foreground="red")
         self.log_text.tag_config("GreenPlayer", foreground="green")
         self.log_text.tag_config("Normal", foreground="white")
-
+        
+     def setup_timer(self):
+         self.remaining_seconds = 360  # 6 minutes
+ 
+         self.timer_label = Label(self.window, text="", fg="white", bg="black", font=("Arial", 18, "bold"))
+         self.timer_label.pack(side=tk.TOP, pady=5)
+         self.update_timer()
+ 
+     def update_timer(self):
+         if self.remaining_seconds >= 0:
+             mins = self.remaining_seconds // 60
+             secs = self.remaining_seconds % 60
+             self.timer_label.config(text=f"Game Time Remaining: {mins:02}:{secs:02}")
+             self.remaining_seconds -= 1
+             self.window.after(1000, self.update_timer)
+         else:
+             self.end_game()
+ 
+     def end_game(self):
+         def ignore_tags(*args, **kwargs):
+             pass
+         udp.set_tagged_callback(ignore_tags)
+ 
+         game_over_label = Label(self.window, text="GAME OVER", fg="red", bg="black", font=("Arial", 48, "bold"))
+         game_over_label.place(relx=0.5, rely=0.5, anchor="center")
+    
     def display_back_button(self):
         def go_back():
             self.window.destroy()
