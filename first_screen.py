@@ -72,7 +72,6 @@ class firstScreen:
             print(f"Error in handle_tagged: {e}")
         
 
-
     def change_network(self):
         new_network = simpledialog.askstring("Input", "Enter new network")
         udp.IP = new_network
@@ -85,6 +84,8 @@ class firstScreen:
 
         for entry in self.equipment_entries:
             entry.delete(0, tk.END)
+
+        self.assigned_players = {}
 
 
     def make_headers(self, frame, bg_color):
@@ -140,7 +141,6 @@ class firstScreen:
             messagebox.showerror("Error", "Invalid submission. Enter an integer ID")
             entry.delete(0, tk.END)
             return
-        
 
         # Find corresponding player ID in the same row
         row_index = self.equipment_entries.index(entry)
@@ -152,8 +152,6 @@ class firstScreen:
             return
 
         player_id = int(player_id)
-
-        
         codename = self.player_entries[player_entry][0].cget("text") #get codename from appropriate row
         self.equipment_to_codename[value] = codename #add equipment-id: codename in dictionary
         
@@ -162,11 +160,14 @@ class firstScreen:
         
 
     def submit_player_id(self, entry, team):
-        # Get entry value. If empty, clear name label and exit function. If in use, also exit.
+        # Get entry value. If empty, clear name label and player assignment and exit function. If in use, also exit.
         value = entry.get().strip()
         try:
             if value == "":
+                old_id = next((tup[0] for tup in sql.fetch_players() if tup[1] == self.player_entries[entry][0].cget("text")), None)
                 self.player_entries[entry][0].config(text="")
+                if old_id:
+                    self.assigned_players.pop(old_id)
                 return
             elif value in map(lambda e: e.get().strip() if e != entry else "", self.player_entries.keys()): # Checks if value is in entered IDs
                 messagebox.showerror("Error", "Invalid submission. Player ID currently in use")
@@ -227,9 +228,13 @@ class firstScreen:
             except Exception as e:
                 print("Error creating new player entry: ", e)
 
-        sql.fetch_players()
 
     def start_game(self):
+        # Make sure there is at least one player entry
+        if not self.assigned_players:
+            messagebox.showerror("Error", "No players entered. Try again.")
+            return
+
         players = {}  # Store {equipment_id: {codename, team, score}}
 
         for entry, (name_label, team) in self.player_entries.items():

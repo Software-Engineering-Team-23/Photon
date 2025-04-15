@@ -35,10 +35,10 @@ pip install psycopg2
 
 #### pygame package
 
-Debian: 
+Debian:  
 sudo apt-get install python3-pygame
 
-Pip: 
+Pip:  
 pip install pygame
 
 ## Instructions

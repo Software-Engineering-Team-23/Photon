@@ -3,7 +3,7 @@ from tkinter import Frame, Label, Text
 import udp
 
 
-class actionDisplay():
+class actionDisplay:
     def __init__(self, window, players=None):
         self.window = window
         self.window.geometry((f"{window.winfo_screenwidth()}x{window.winfo_screenheight()}+0+0"))
@@ -16,13 +16,11 @@ class actionDisplay():
         self.red_players = {}
         self.green_players = {}
         self.team_scores = {"red": 0, "green": 0}
+        self.cached_rankings = []
 
         Label(self.window, text="Current Scores", fg="cyan", bg="black", font=("Arial", 16, "bold")).pack(side=tk.TOP, pady=(10, 2), anchor="n")
 
         self.setup_ui()
-
-        # Start 6-minute gameplay timer
-        self.setup_timer()
 
         # Iterating over the dictionary to add players
         if players:
@@ -100,31 +98,6 @@ class actionDisplay():
         self.log_text.tag_config("GreenPlayer", foreground="green")
         self.log_text.tag_config("Normal", foreground="white")
 
-    def setup_timer(self):
-        self.remaining_seconds = 360  # 6 minutes
-
-        self.timer_label = Label(self.window, text="", fg="white", bg="black", font=("Arial", 18, "bold"))
-        self.timer_label.pack(side=tk.TOP, pady=5)
-        self.update_timer()
-
-    def update_timer(self):
-        if self.remaining_seconds >= 0:
-            mins = self.remaining_seconds // 60
-            secs = self.remaining_seconds % 60
-            self.timer_label.config(text=f"Game Time Remaining: {mins:02}:{secs:02}")
-            self.remaining_seconds -= 1
-            self.window.after(1000, self.update_timer)
-        else:
-            self.end_game()
-
-    def end_game(self):
-        def ignore_tags(*args, **kwargs):
-            pass
-        udp.set_tagged_callback(ignore_tags)
-
-        game_over_label = Label(self.window, text="GAME OVER", fg="red", bg="black", font=("Arial", 48, "bold"))
-        game_over_label.place(relx=0.5, rely=0.5, anchor="center")
-
     def display_back_button(self):
         def go_back():
             self.window.destroy()
@@ -144,9 +117,9 @@ class actionDisplay():
         score_label.pack(side=tk.RIGHT, padx=10)
 
         if team.lower() == "red":
-            self.red_players[name] = {"name": name_label, "score": score_label}
+            self.red_players[name] = {"name": name_label, "score": score_label, "row": player_row}
         else:
-            self.green_players[name] = {"name": name_label, "score": score_label}
+            self.green_players[name] = {"name": name_label, "score": score_label, "row": player_row}
 
     def log_event(self, message, tagger_name=None, tagger_team=None, tagged_name=None, tagged_team=None):
         def safe_insert():
@@ -163,16 +136,41 @@ class actionDisplay():
 
         self.log_text.after(0, safe_insert)
 
-    def update_scoreboard(self, tagger_team, tagger_name, tagger_id):
+    def update_scoreboard(self, tagger_team):
         # Updates scoreboard display for player
-        score = self.players.get(tagger_id)["score"]
+        sorted_players = sorted(self.players.items(), key=lambda x: x[1]["score"], reverse=True)
+        current_rankings = [tup[0] for tup in sorted_players]
+
+        # Update cumulative team scores
         if tagger_team.lower() == "red":
-            self.red_players[tagger_name]["score"].config(text=score)
             self.red_total_score.config(text=self.team_scores["red"])
         else:
-            self.green_players[tagger_name]["score"].config(text=score)
             self.green_total_score.config(text=self.team_scores["green"])
+        
+        # Update and sort individual player scores as needed
+        for _, player_info in sorted_players:
+            sorted_teamname = player_info["team"].lower()
+            sorted_codename = player_info["codename"]
+            sorted_score = player_info["score"]
+            if sorted_teamname == "red":
+                name_label = self.red_players[sorted_codename]["name"]
+                score_label = self.red_players[sorted_codename]["score"]
+                name_label.config(text=sorted_codename)
+                score_label.config(text=sorted_score)
+                row = self.red_players[sorted_codename]["row"]      
+            else:
+                name_label = self.green_players[sorted_codename]["name"]
+                score_label = self.green_players[sorted_codename]["score"]
+                name_label.config(text=sorted_codename)
+                score_label.config(text=sorted_score)
+                row = self.green_players[sorted_codename]["row"]
 
+            row.pack_forget()
+            row.pack(in_=self.red_frame if sorted_teamname == "red" else self.green_frame, fill=tk.X, padx=5, pady=2)
+        
+        # Save the rankings of player IDs
+        self.cached_rankings = current_rankings
+        
     def handle_tagged(self, tagger_id, tagged_id):
         try:
             tagger_id = int(tagger_id)
@@ -189,7 +187,7 @@ class actionDisplay():
                     tagger_name = tagger_info["codename"]
                     self.players.get(tagger_id)["score"] += 100
                     self.team_scores["green"] += 100
-                    self.update_scoreboard("green", tagger_name, tagger_id)
+                    self.update_scoreboard("green")
                     self.log_event(
                         message=None,
                         tagger_name=tagger_name,
@@ -205,7 +203,7 @@ class actionDisplay():
                     tagger_name = tagger_info["codename"]
                     self.players.get(tagger_id)["score"] += 100
                     self.team_scores["red"] += 100
-                    self.update_scoreboard("red", tagger_name, tagger_id)
+                    self.update_scoreboard("red")
                     self.log_event(
                         message=None,
                         tagger_name=tagger_name,
@@ -235,7 +233,7 @@ class actionDisplay():
                 self.players.get(tagger_id)["score"] -= 10
                 self.team_scores[tagger_team.lower()] -= 10
 
-            self.update_scoreboard(tagger_team, tagger_name, tagger_id)    
+            self.update_scoreboard(tagger_team)    
 
             #Log with colored player names
             self.log_event(
