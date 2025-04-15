@@ -100,7 +100,6 @@ class actionDisplay:
         
     def setup_timer(self):
         self.remaining_seconds = 360  # 6 minutes
- 
         self.timer_label = Label(self.window, text="", fg="white", bg="black", font=("Arial", 18, "bold"))
         self.timer_label.pack(side=tk.TOP, pady=5)
         self.update_timer()
@@ -119,19 +118,59 @@ class actionDisplay:
         def ignore_tags(*args, **kwargs):
             pass
         udp.set_tagged_callback(ignore_tags)
- 
-        game_over_label = Label(self.window, text="GAME OVER", fg="red", bg="black", font=("Arial", 48, "bold"))
-        game_over_label.place(relx=0.5, rely=0.5, anchor="center")
-        self.display_back_button()
+
+        # Result panel
+        result_panel = Frame(self.window, bg="black", bd=4, relief="ridge", highlightbackground="white", highlightthickness=2)
+        result_panel.place(relx=0.5, rely=0.5, anchor="center")
+
+        # Game over label
+        game_over_label = Label(result_panel, text="GAME OVER", fg="red", bg="black", font=("Arial", 48, "bold"))
+        game_over_label.pack(pady=(10, 2))
+
+        # Winner decision
+        red_score = self.team_scores["red"]
+        green_score = self.team_scores["green"]
+        if red_score > green_score:
+            winner_text = "RED TEAM WINS!"
+            winner_color = "red"
+        elif green_score > red_score:
+            winner_text = "GREEN TEAM WINS!"
+            winner_color = "green"
+        else:
+            winner_text = "IT'S A TIE!"
+            winner_color = "white"
+
+        #winner label 
+        winner_label = Label(result_panel, text=winner_text, fg=winner_color, bg="black", font=("Arial", 20, "bold"))
+        winner_label.pack(pady=(0, 5))
+
+        self.display_back_button(result_panel)
+
         for i in range(3):
             # Send code 221 three times to signal game end
             udp.udp_sender(221)
     
-    def display_back_button(self):
+    def display_back_button(self, container):
+        import first_screen # import is local to avoid any possible conflict
         def go_back():
             self.window.destroy()
-        top_left = tk.Button(self.window, text="BACK", fg="cyan", bg="black", command=go_back)
-        top_left.place(x=0, y=0, anchor="nw")
+            # Save player data to reutilize
+            saved_players = {
+                player_id: {
+                            "codename": data["codename"],
+                            "team": data["team"],
+                            "equipment_id": player_id,
+                            "player_id": data.get("player_id", player_id)
+                        }
+            for player_id, data in self.players.items()
+            }
+            first_screen.open_window(preload_players=saved_players)# Added to get back to the first screen
+        
+        back_button = tk.Button(container, text="BACK", fg="cyan", bg="black", font=("Arial", 16, "bold"), command=go_back)
+        back_button.pack(pady=(10, 5))
+
+        back_button.bind("<Enter>", lambda e: back_button.config(fg="#cc33ff"))
+        back_button.bind("<Leave>", lambda e: back_button.config(fg="cyan"))
             
     def add_player(self, team, name, score=0):
         frame = self.red_frame if team.lower() == "red" else self.green_frame
