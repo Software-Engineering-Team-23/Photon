@@ -40,7 +40,7 @@ def create_player(player_id, codename):
     if conn:
         try:
             cur = conn.cursor()
-            cur.execute("INSERT INTO players (id, name) VALUES (%s, %s);", (player_id, codename,))
+            cur.execute("INSERT INTO players (id, codename) VALUES (%s, %s);", (player_id, codename,))
             conn.commit()
             cur.close()
             print(f"Player '{codename}' inserted with ID {player_id}.")

@@ -97,11 +97,30 @@ class actionDisplay:
         self.log_text.tag_config("RedPlayer", foreground="red")
         self.log_text.tag_config("GreenPlayer", foreground="green")
         self.log_text.tag_config("Normal", foreground="white")
-        
+
+    def flash_teamscore(self):
+        # Flash team score with highest value
+        if self.team_scores["green"] > self.team_scores["red"]:
+            current_color = self.green_total_score.cget("fg")
+            self.green_total_score.config(fg=("black" if current_color == "yellow" else "yellow"))
+            self.red_total_score.config(fg="yellow")
+        elif self.team_scores["red"] > self.team_scores["green"]:   
+            current_color = self.red_total_score.cget("fg")
+            self.red_total_score.config(fg=("black" if current_color == "yellow" else "yellow"))
+            self.green_total_score.config(fg="yellow")
+        else:
+            self.green_total_score.config(fg="yellow")
+            self.red_total_score.config(fg="yellow")
+
+        # Keep looping indefinitely until game ends
+        if self.remaining_seconds >= 0:
+            self.window.after(500, self.flash_teamscore)
+
     def setup_timer(self):
         self.remaining_seconds = 360  # 6 minutes
         self.timer_label = Label(self.window, text="", fg="white", bg="black", font=("Arial", 18, "bold"))
         self.timer_label.pack(side=tk.TOP, pady=5)
+        self.flash_teamscore()
         self.update_timer()
  
     def update_timer(self):
