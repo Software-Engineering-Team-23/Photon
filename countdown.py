@@ -72,6 +72,9 @@ class CountdownApp:
         # Get screen dimensions
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
+        if count == 14:
+            import playsound
+            self.root.after(500, lambda: playsound.play_music("audio_tracks/Track01.mp3", start_at=0.0))    
 
         if count >= 0:
             # Load the corresponding number image
