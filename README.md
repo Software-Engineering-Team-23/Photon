@@ -49,7 +49,7 @@ Then, in the right field, enter the equipment ID, which will transmit to UDP.
 The database will update accordingly.
 Once the players are entered, you can press the F5 button to start the game.
 The countdown timer will begin, after which the play action screen appears. 
-After the game ends, a back button will appear in the top-left corner to return to the entry screen. 
+After the game ends, a back button will appear to return to the entry screen. 
 
 ## Team
 
