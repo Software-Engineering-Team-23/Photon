@@ -30,10 +30,13 @@ class splashScreen:
         nwidth = event.width
         nheight = event.height
 
-        new_image = self.img_copy.resize((nwidth, nheight), Image.Resampling.LANCZOS)#replaced with ANTIALIAS to keep image quality
+        try:
+            resample_filter = Image.Resampling.LANCZOS
+        except AttributeError:
+            resample_filter = Image.ANTIALIAS
 
+        new_image = self.img_copy.resize((nwidth, nheight), resample_filter)
         self.background_image = ImageTk.PhotoImage(new_image)
-
         self.background.configure(image=self.background_image)
 
 def open_window():
