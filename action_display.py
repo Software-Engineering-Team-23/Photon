@@ -115,7 +115,7 @@ class actionDisplay:
         # Keep looping indefinitely until game ends
         if self.remaining_seconds >= 0:
             self.window.after(500, self.flash_teamscore)
-
+        
     def setup_timer(self):
         self.remaining_seconds = 360  # 6 minutes
         self.timer_label = Label(self.window, text="", fg="white", bg="black", font=("Arial", 18, "bold"))
@@ -374,7 +374,7 @@ class actionDisplay:
 def open_window(players=None):
     window = tk.Tk()
     display = actionDisplay(window, players)
-    playsound.random_music()
+    #playsound.random_music()
     #Set the UDP callback to the action display's method
     udp.set_tagged_callback(display.handle_tagged)    
     window.mainloop()
